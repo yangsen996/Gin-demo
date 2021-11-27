@@ -9,9 +9,7 @@ import (
 	"gorm.io/gorm"
 )
 
-var G_db *gorm.DB
-
-func ConnDB() {
+func ConnDB() *gorm.DB {
 	dbName := os.Getenv("DB_NAME")
 	dbLocal := os.Getenv("DB_LOCAL")
 	dbUser := os.Getenv("DB_USER")
@@ -22,5 +20,13 @@ func ConnDB() {
 		panic("connect database failed")
 	}
 	client.AutoMigrate()
-	G_db = client
+	return client
+}
+
+func Close(db *gorm.DB) {
+	sqlDB, err := db.DB()
+	if err != nil {
+		panic("failed to connection from database")
+	}
+	sqlDB.Close()
 }

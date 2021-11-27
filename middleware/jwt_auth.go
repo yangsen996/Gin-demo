@@ -1,10 +1,11 @@
 package middleware
 
 import (
-	"api_auth/comm"
-	"api_auth/service"
 	"log"
 	"net/http"
+
+	"github.com/yangsen996/Gin-demo/comm"
+	"github.com/yangsen996/Gin-demo/service"
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
