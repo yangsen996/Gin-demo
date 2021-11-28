@@ -15,12 +15,12 @@ type UserRepository interface {
 	FindUserById(userId string) entity.User
 }
 
-type UserConnection struct {
+type userConnection struct {
 	conn *gorm.DB
 }
 
 func NewUserConnection(db *gorm.DB) UserRepository {
-	return &UserConnection{
+	return &userConnection{
 		conn: db,
 	}
 }
@@ -32,17 +32,23 @@ func hashAndSalf(pwd []byte) string {
 	}
 	return string(hashPwd)
 }
-func (db *UserConnection) InsertUser(user entity.User) entity.User {
+func (db *userConnection) InsertUser(user entity.User) entity.User {
 	user.Password = hashAndSalf([]byte(user.Password))
 	db.conn.Save(&user)
 	return user
 }
-func (db *UserConnection) UpdateUser(user entity.User) entity.User {
-	user.Password = hashAndSalf([]byte(user.Password))
+func (db *userConnection) UpdateUser(user entity.User) entity.User {
+	if user.Password != "" {
+		user.Password = hashAndSalf([]byte(user.Password))
+	} else {
+		var tmp entity.User
+		db.conn.Find(&tmp, user.Id)
+		user.Password = tmp.Password
+	}
 	db.conn.Save(&user)
 	return user
 }
-func (db *UserConnection) VerifyCredential(email string, password string) interface{} {
+func (db *userConnection) VerifyCredential(email string, password string) interface{} {
 	var user entity.User
 	res := db.conn.Where("email =?", email).Take(&user)
 	if res.Error == nil {
@@ -50,16 +56,16 @@ func (db *UserConnection) VerifyCredential(email string, password string) interf
 	}
 	return nil
 }
-func (db *UserConnection) IsDuplicateEmail(email string) (tx *gorm.DB) {
+func (db *userConnection) IsDuplicateEmail(email string) (tx *gorm.DB) {
 	var user entity.User
 	return db.conn.Where("email=?", email).Take(&user)
 }
-func (db *UserConnection) FindByEmail(email string) entity.User {
+func (db *userConnection) FindByEmail(email string) entity.User {
 	var user entity.User
 	db.conn.Where("email=?", email).Take(&user)
 	return user
 }
-func (db *UserConnection) FindUserById(userId string) entity.User {
+func (db *userConnection) FindUserById(userId string) entity.User {
 	var user entity.User
 	db.conn.Find(&user, userId)
 	return user
